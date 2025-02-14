@@ -148,3 +148,38 @@ jobs:
       with:
         name: MSIX Package
         path: ${{ env.Wap_Project_Directory }}\AppPackages
+
+    # Build the project
+    - name: Build
+      run: |
+        if ($env:Solution_Name) {
+            msbuild $env:Solution_Name /p:Configuration=${{ matrix.configuration }}
+        }
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    # Tìm và upload file exe
+    - name: Find and Upload Executable
+      if: matrix.configuration == 'Release'
+      run: |
+        # Tìm tất cả file .exe trong thư mục bin
+        $exeFiles = Get-ChildItem -Path . -Filter *.exe -Recurse | 
+                   Where-Object { $_.FullName -like "*\bin\${{ matrix.configuration }}*" }
+        
+        # Tạo thư mục để chứa các file exe
+        New-Item -ItemType Directory -Force -Path ".\artifacts"
+        
+        # Copy tất cả file exe vào thư mục artifacts
+        foreach ($exe in $exeFiles) {
+            Write-Host "Found executable: $($exe.FullName)"
+            Copy-Item $exe.FullName -Destination ".\artifacts\"
+        }
+      shell: pwsh
+
+    # Upload artifacts
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.configuration }}-Executables
+        path: .\artifacts\
+        if-no-files-found: error # 'warn' hoặc 'ignore' nếu bạn không muốn fail workflow khi không tìm thấy file
