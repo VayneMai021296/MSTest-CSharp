@@ -161,17 +161,16 @@ jobs:
     # Tìm và upload file exe
     - name: Find and Upload Executable
       run: |
-        # Tìm tất cả file .exe trong thư mục bin
-        $exeFiles = Get-ChildItem -Path . -Filter *.exe -Recurse | 
-                   Where-Object { $_.FullName -like "*\bin\x64\Debug\net8.0\${{ matrix.configuration }}*" }
+        # Tìm thư mục bin/Debug/net8.0
+        $binDirs = Get-ChildItem -Path . -Recurse | 
+                  Where-Object { $_.FullName -like "*\bin\${{ matrix.configuration }}\net8.0" }
         
-        # Tạo thư mục để chứa các file exe
+        # Tạo thư mục artifacts
         New-Item -ItemType Directory -Force -Path ".\artifacts"
         
-        # Copy tất cả file exe vào thư mục artifacts
-        foreach ($exe in $exeFiles) {
-            Write-Host "Found executable: $($exe.FullName)"
-            Copy-Item $exe.FullName -Destination ".\artifacts\"
+        foreach ($binDir in $binDirs){
+            Write-Host "Copying files from: $($binDir.FullName)"
+            Copy-Item "$($binDir.FullName)\*" -Destination ".\artifacts\" -Recurse -Force
         }
       shell: pwsh
 
