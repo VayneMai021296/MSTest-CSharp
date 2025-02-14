@@ -149,26 +149,42 @@ jobs:
         New-Item -ItemType Directory -Force -Path ".\artifacts"
         
         # Build và copy files cho từng project
-        $otherProjects = $env:Other_Projects -split ';'
+        $otherProjects = Get-ChildItem -Path . -Filter *.csproj -Recurse | 
+                        Where-Object { $_.FullName -notlike "*Test*" }
+        
         foreach ($project in $otherProjects){
             if ($project) {
-                $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project)
+                $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project.FullName)
                 Write-Host "Building project: $projectName"
                 
                 # Build project
-                dotnet build $project --configuration ${{ matrix.configuration }}
+                dotnet build $project.FullName --configuration ${{ matrix.configuration }}
                 
                 # Tạo thư mục riêng cho project trong artifacts
                 $projectArtifactPath = ".\artifacts\$projectName"
                 New-Item -ItemType Directory -Force -Path $projectArtifactPath
                 
-                # Tìm và copy tất cả files từ thư mục bin của project
-                $binPath = [System.IO.Path]::GetDirectoryName($project)
-                $binFiles = Get-ChildItem -Path "$binPath\bin\${{ matrix.configuration }}\net8.0\*" -Recurse
-                Copy-Item -Path "$binPath\bin\${{ matrix.configuration }}\net8.0\*" -Destination $projectArtifactPath -Recurse -Force
+                # Tìm thư mục bin của project
+                $binPath = Join-Path -Path $project.DirectoryName -ChildPath "bin\${{ matrix.configuration }}\net8.0"
+                Write-Host "Looking for files in: $binPath"
                 
-                Write-Host "Copied files for $projectName to $projectArtifactPath"
+                if (Test-Path $binPath) {
+                    Write-Host "Found bin directory, copying files..."
+                    Copy-Item -Path "$binPath\*" -Destination $projectArtifactPath -Recurse -Force
+                    Write-Host "Files copied for $projectName to $projectArtifactPath"
+                    Get-ChildItem -Path $projectArtifactPath -Recurse | ForEach-Object {
+                        Write-Host "Copied file: $($_.FullName)"
+                    }
+                } else {
+                    Write-Host "Warning: Bin directory not found for $projectName"
+                }
             }
+        }
+        
+        # Hiển thị cấu trúc thư mục artifacts
+        Write-Host "Final artifacts directory structure:"
+        Get-ChildItem -Path ".\artifacts" -Recurse | ForEach-Object{
+            Write-Host $_.FullName
         }
       shell: pwsh
 
