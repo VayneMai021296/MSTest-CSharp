@@ -55,17 +55,40 @@ jobs:
     runs-on: windows-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
-    env:
-      Solution_Name: your-solution-name                         # Replace with your solution name, i.e. MyWpfApp.sln.
-      Test_Project_Path: your-test-project-path                 # Replace with the path to your test project, i.e. MyWpfApp.Tests\MyWpfApp.Tests.csproj.
-      Wap_Project_Directory: your-wap-project-directory-name    # Replace with the Wap project directory relative to the solution, i.e. MyWpfApp.Package.
-      Wap_Project_Path: your-wap-project-path                   # Replace with the path to your Wap project, i.e. MyWpf.App.Package\MyWpfApp.Package.wapproj.
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
+    # Tự động tìm và thiết lập các đường dẫn
+    - name: Set Solution and Project Paths
+      shell: pwsh
+      run: |
+        # Tìm file .sln
+        $solutionFile = Get-ChildItem -Path . -Filter *.sln -Recurse | Select-Object -First 1
+        echo "Solution_Name=$($solutionFile.FullName)" >> $env:GITHUB_ENV
+        
+        # Tìm test project
+        $testProject = Get-ChildItem -Path . -Filter *Tests.csproj -Recurse | Select-Object -First 1
+        if (-not $testProject) {
+            $testProject = Get-ChildItem -Path . -Filter *Test.csproj -Recurse | Select-Object -First 1
+        }
+        echo "Test_Project_Path=$($testProject.FullName)" >> $env:GITHUB_ENV
+        
+        # Tìm WAP project
+        $wapProject = Get-ChildItem -Path . -Filter *.wapproj -Recurse | Select-Object -First 1
+        if ($wapProject) {
+            echo "Wap_Project_Directory=$($wapProject.Directory.FullName)" >> $env:GITHUB_ENV
+            echo "Wap_Project_Path=$($wapProject.FullName)" >> $env:GITHUB_ENV
+        }
+        
+        # Hiển thị các đường dẫn đã tìm thấy
+        echo "Found Solution: $($solutionFile.FullName)"
+        echo "Found Test Project: $($testProject.FullName)"
+        if ($wapProject) {
+            echo "Found WAP Project: $($wapProject.FullName)"
+        }
 
     # Install the .NET Core workload
     - name: Install .NET Core
@@ -79,7 +102,13 @@ jobs:
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
-      run: dotnet test
+      run: |
+        if (Test-Path env:Test_Project_Path) {
+            dotnet test $env:Test_Project_Path
+        } else {
+            dotnet test
+        }
+      shell: pwsh
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
