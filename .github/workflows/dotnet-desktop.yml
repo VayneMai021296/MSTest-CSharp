@@ -160,11 +160,10 @@ jobs:
 
     # Tìm và upload file exe
     - name: Find and Upload Executable
-      if: matrix.configuration == 'Release'
       run: |
         # Tìm tất cả file .exe trong thư mục bin
         $exeFiles = Get-ChildItem -Path . -Filter *.exe -Recurse | 
-                   Where-Object { $_.FullName -like "*\bin\${{ matrix.configuration }}*" }
+                   Where-Object { $_.FullName -like "*\bin\x64\Debug\net8.0\${{ matrix.configuration }}*" }
         
         # Tạo thư mục để chứa các file exe
         New-Item -ItemType Directory -Force -Path ".\artifacts"
@@ -182,4 +181,4 @@ jobs:
       with:
         name: ${{ matrix.configuration }}-Executables
         path: .\artifacts\
-        if-no-files-found: error # 'warn' hoặc 'ignore' nếu bạn không muốn fail workflow khi không tìm thấy file
+        if-no-files-found: warn
