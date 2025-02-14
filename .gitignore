@@ -1,0 +1,57 @@
+## Build Folders (bin, obj)
+[Bb]in/
+[Oo]bj/
+
+## User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+## Visual Studio folders
+.vs/
+.vscode/
+
+## Visual Studio Code Coverage results
+*.coverage
+*.coveragexml
+
+## Build Results
+*.exe
+*.dll
+*.pdb
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+
+## NuGet Packages
+*.nupkg
+# Thư mục packages của NuGet nếu sử dụng gói cũ
+packages/
+
+## DotNet Tools
+*.dotnet/
+
+## Auto-generated files
+Generated_Code/
+
+## Backup & Report files
+*.bak
+*.log
+*.log.txt
+
+## OS generated files
+.DS_Store
+Thumbs.db
+
+## Rider (JetBrains)
+.idea/
+*.sln.iml
+
+## Resharper
+_ReSharper*/
+*.DotSettings.user
+
+## Others
+*.vsix
