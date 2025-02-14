@@ -52,14 +52,13 @@ jobs:
       matrix:
         configuration: [Debug, Release]
 
-    runs-on: windows-latest  # For a list of available runner types, refer to
-                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: windows-latest  # Chạy trên môi trường Windows mới nhất
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0  # Lấy toàn bộ lịch sử commit
 
     # Tự động tìm và thiết lập các đường dẫn
     - name: Set Solution and Project Paths
@@ -83,17 +82,17 @@ jobs:
         echo "Other_Projects=$($projectPaths -join ';')" >> $env:GITHUB_ENV
         Write-Host "Found other projects: $($projectPaths -join '; ')"
 
-    # Install the .NET Core workload
+    # Cài đặt .NET Core
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 8.0.x  # Phiên bản .NET Core 8.0.x
 
-    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    # Thêm MSBuild vào PATH
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v2
 
-    # Execute all unit tests in the solution
+    # Thực thi tất cả các unit test trong solution
     - name: Execute unit tests
       run: |
         if ($env:Solution_Name){
@@ -105,13 +104,13 @@ jobs:
         }
       shell: pwsh
 
-    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    # Khôi phục ứng dụng để điền thư mục obj với RuntimeIdentifiers
     - name: Restore the application
       run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
       env:
         Configuration: ${{ matrix.configuration }}
 
-    # Decode the base 64 encoded pfx and save the Signing_Certificate
+    # Giải mã pfx được mã hóa base 64 và lưu chứng chỉ ký
     - name: Decode the pfx
       if: env.Wap_Project_Directory != ''
       run: |
@@ -119,7 +118,7 @@ jobs:
         $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
-    # Create the app package by building and packaging the Windows Application Packaging project
+    # Tạo gói ứng dụng bằng cách xây dựng và đóng gói dự án Windows Application Packaging
     - name: Create the app package
       if: env.Wap_Project_Directory != ''
       run: msbuild $env:Wap_Project_Path /p:Configuration=$env:Configuration /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
@@ -129,12 +128,12 @@ jobs:
         Appx_Package_Build_Mode: StoreUpload
         Configuration: ${{ matrix.configuration }}
 
-    # Remove the pfx
+    # Xóa pfx
     - name: Remove the pfx
       if: env.Wap_Project_Directory != ''
       run: Remove-Item -path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx
 
-    # Upload the MSIX package
+    # Tải lên gói MSIX
     - name: Upload build artifacts
       if: env.Wap_Project_Directory != ''
       uses: actions/upload-artifact@v4
@@ -187,7 +186,7 @@ jobs:
         }
       shell: pwsh
 
-    # Upload artifacts
+    # Tải lên artifacts
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
