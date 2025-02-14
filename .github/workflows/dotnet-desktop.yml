@@ -70,25 +70,18 @@ jobs:
         echo "Solution_Name=$($solutionFile.FullName)" >> $env:GITHUB_ENV
         
         # Tìm test project
-        $testProject = Get-ChildItem -Path . -Filter *Tests.csproj -Recurse | Select-Object -First 1
-        if (-not $testProject) {
-            $testProject = Get-ChildItem -Path . -Filter *Test.csproj -Recurse | Select-Object -First 1
-        }
-        echo "Test_Project_Path=$($testProject.FullName)" >> $env:GITHUB_ENV
-        
-        # Tìm WAP project
-        $wapProject = Get-ChildItem -Path . -Filter *.wapproj -Recurse | Select-Object -First 1
-        if ($wapProject) {
-            echo "Wap_Project_Directory=$($wapProject.Directory.FullName)" >> $env:GITHUB_ENV
-            echo "Wap_Project_Path=$($wapProject.FullName)" >> $env:GITHUB_ENV
+        $testProject = Get-ChildItem -Path . -Recurse -Include "*Tests.csproj","*Test.csproj","TestProject*.csproj" | Select-Object -First 1
+        if ($testProject) {
+            echo "Test_Project_Path=$($testProject.FullName)" >> $env:GITHUB_ENV
+            Write-Host "Found test project: $($testProject.FullName)"
         }
         
-        # Hiển thị các đường dẫn đã tìm thấy
-        echo "Found Solution: $($solutionFile.FullName)"
-        echo "Found Test Project: $($testProject.FullName)"
-        if ($wapProject) {
-            echo "Found WAP Project: $($wapProject.FullName)"
-        }
+        # Tìm tất cả các project khác (không phải test project)
+        $otherProjects = Get-ChildItem -Path . -Filter *.csproj -Recurse | 
+                        Where-Object { $_.FullName -notlike "*Test*" }
+        $projectPaths = $otherProjects | ForEach-Object { $_.FullName }
+        echo "Other_Projects=$($projectPaths -join ';')" >> $env:GITHUB_ENV
+        Write-Host "Found other projects: $($projectPaths -join '; ')"
 
     # Install the .NET Core workload
     - name: Install .NET Core
@@ -149,28 +142,33 @@ jobs:
         name: MSIX Package
         path: ${{ env.Wap_Project_Directory }}\AppPackages
 
-    # Build the project
-    - name: Build
+    # Build và upload từng project riêng biệt
+    - name: Build and Upload Projects
       run: |
-        if ($env:Solution_Name) {
-            msbuild $env:Solution_Name /p:Configuration=${{ matrix.configuration }}
-        }
-      env:
-        Configuration: ${{ matrix.configuration }}
-
-    # Tìm và upload file exe
-    - name: Find and Upload Executable
-      run: |
-        # Tìm thư mục bin/Debug/net8.0
-        $binDirs = Get-ChildItem -Path . -Recurse | 
-                  Where-Object { $_.FullName -like "*\bin\${{ matrix.configuration }}\net8.0" }
-        
-        # Tạo thư mục artifacts
+        # Tạo thư mục artifacts gốc
         New-Item -ItemType Directory -Force -Path ".\artifacts"
         
-        foreach ($binDir in $binDirs){
-            Write-Host "Copying files from: $($binDir.FullName)"
-            Copy-Item "$($binDir.FullName)\*" -Destination ".\artifacts\" -Recurse -Force
+        # Build và copy files cho từng project
+        $otherProjects = $env:Other_Projects -split ';'
+        foreach ($project in $otherProjects){
+            if ($project) {
+                $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project)
+                Write-Host "Building project: $projectName"
+                
+                # Build project
+                dotnet build $project --configuration ${{ matrix.configuration }}
+                
+                # Tạo thư mục riêng cho project trong artifacts
+                $projectArtifactPath = ".\artifacts\$projectName"
+                New-Item -ItemType Directory -Force -Path $projectArtifactPath
+                
+                # Tìm và copy tất cả files từ thư mục bin của project
+                $binPath = [System.IO.Path]::GetDirectoryName($project)
+                $binFiles = Get-ChildItem -Path "$binPath\bin\${{ matrix.configuration }}\net8.0\*" -Recurse
+                Copy-Item -Path "$binPath\bin\${{ matrix.configuration }}\net8.0\*" -Destination $projectArtifactPath -Recurse -Force
+                
+                Write-Host "Copied files for $projectName to $projectArtifactPath"
+            }
         }
       shell: pwsh
 
