@@ -149,10 +149,9 @@ jobs:
         New-Item -ItemType Directory -Force -Path ".\artifacts"
         
         # Build và copy files cho từng project
-        $otherProjects = Get-ChildItem -Path . -Filter *.csproj -Recurse | 
-                        Where-Object { $_.FullName -notlike "*Test*" }
+        $allProjects = Get-ChildItem -Path . -Filter *.csproj -Recurse
         
-        foreach ($project in $otherProjects){
+        foreach ($project in $allProjects){
             if ($project) {
                 $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project.FullName)
                 Write-Host "Building project: $projectName"
