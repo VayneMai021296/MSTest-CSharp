@@ -23,7 +23,7 @@ namespace TestProject1
             if (File.Exists(LogFilePath))
             {
                 FileExtention.IsFileLocked(LogFilePath);
-                File.Delete(LogFilePath);
+                //File.Delete(LogFilePath);
             }
             /* Khởi tạo đối tượng Calculator */
             _program = new Program();
@@ -41,6 +41,7 @@ namespace TestProject1
         [Owner("MAI TRUNG KIEN 14022025")]
         [Priority(1)]
         [WorkItem(112)]
+        [TestCategory("Logical")]
         public void Test_Addition_BetweenNumber()
         {
             int result = _program.CalculatorAdd(10, 20);
@@ -49,9 +50,10 @@ namespace TestProject1
 
         [TestMethod]
         [Timeout(240)] /* Setup thời gian tối đa cho testcase này là 1000ms, Nếu quá 1000ms thì test case sẽ FAILED */
-        [Owner("MAI TRUNG KIEN Group by Student basedon Id")]
+        [Owner("maitrungkien")]
         [Priority(2)]
         [WorkItem(113)]
+        [TestCategory("Performance")]
         public void Test_TimeOut()
         {
             // This test will always fail because the time taken to execute is greater than the timeout value.
@@ -60,11 +62,14 @@ namespace TestProject1
 
 
         [TestMethod]
+        [Owner("maitrungkien")]
+        [Priority(1)]
         [DataTestMethod]
         /* Đánh dấu một phương thức test là data-driven test (kiểm thử với nhiều bộ dữ liệu khác nhau).
                         * Cho phép chạy lại cùng một test method với nhiều giá trị đầu vào. */
         [DataRow(2, 3, 5)]
         [DataRow(4, 5, 9)]
+        [TestCategory("Logical-Integration")]
         public void Add_DataDrivenTest(int a, int b, int expected)
         {
             int result = _program.CalculatorAdd(a, b);
@@ -78,9 +83,12 @@ namespace TestProject1
         }
 
         [TestMethod]
+        [Owner("maitrungkien")]
+        [Priority(2)]
         [DataTestMethod]
         /*  Tương tự [DataRow] nhưng cho phép cung cấp dữ liệu từ một nguồn động (ví dụ: từ một phương thức hoặc thuộc tính trả về IEnumerable<object[]>). 
                     *  Giúp tạo dữ liệu kiểm thử linh hoạt và mở rộng.*/
+        [TestCategory("Logical-Integration")]
         [DynamicData(nameof(GetTestData), DynamicDataSourceType.Method)]
         public void Add_DynamicDataTest(int a, int b, int expected)
         {
@@ -88,17 +96,19 @@ namespace TestProject1
             Assert.AreEqual(expected, result);
         }
 
-        //[TestMethod]
-        //[ExpectedException(typeof(ArgumentException))]
-        ///* Chỉ định rằng một test method dự kiến sẽ ném ra một loại exception nhất định. 
-        //                * Nếu exception được ném ra như dự kiến  =>  test được coi là thành công; 
-        //                * ngược lại => test sẽ thất bại.*/
-        //public void Divide_ByZero_ThrowsArgumentException()
-        //{
-        //    // Giả sử hàm Divide ném ArgumentException khi chia cho 0
-        //    _program.CalculatorDivece(10, 0);
-        //}
-
+        [TestMethod]
+        [Owner("maitrungkien")]
+        [Priority(1)]
+        [TestCategory("Logical-Integration")]
+        [ExpectedException(typeof(DivideByZeroException))]
+        /* Chỉ định rằng một test method dự kiến sẽ ném ra một loại exception nhất định. 
+                        * Nếu exception được ném ra như dự kiến  =>  test được coi là thành công; 
+                        * ngược lại => test sẽ thất bại.*/
+        public void Divide_ByZero_ThrowsArgumentException()
+        {
+            // Giả sử hàm Divide ném ArgumentException khi chia cho 0
+            _program.CalculatorDivece(10, 0);
+        }
 
         [TestCleanup]
         /* Trong mỗi một class được đánh dấu là [TestClass] Attribute [TestCleanup] chỉ được khai báo 1 lần duy nhât, và trong [TestClass] có bao nhiêu

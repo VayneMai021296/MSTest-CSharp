@@ -544,7 +544,6 @@ Step to Structure Project
 │   ├── dotnet test
 ```
 ```css 
-
 MySolution/
 |── MySolution.sln
 ├── MyConsoleApp/
@@ -554,17 +553,82 @@ MySolution/
     ├── MyConsoleApp.Tests.csproj
     └── UnitTest1.cs  (test name depend on you)
 ```
+# How to install .NET SDK on Ubuntu (macOS)
+```bash
+wget https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt-get update
+sudo apt-get install -y apt-transport-https
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-8.0 # Version 8.0 [Version depend on you]
+```
 
 # How to install MSTest-CSharp on Ubuntu (macOS)
-
 ```bash
 dotnet add package MSTest.TestAdapter
 dotnet add package MSTest.TestFramework
 dotnet add package Microsoft.NET.Test.Sdk
+```
+# How to run test on Ubuntu (macOS)
+Sau khi chạy lệnh dotnet build, output của dự án (bao gồm file .exe) thường được tạo ra trong thư mục con như:
 
+Với chế độ Debug: bin/Debug/<framework>/
+Với chế độ Release: bin/Release/<framework>/
+Ví dụ, nếu bạn build dự án .NET Core hoặc .NET 5/6/7 với target framework là net6.0, file .exe (nếu dự án được build dưới dạng self-contained trên Windows) sẽ nằm ở:
+
+```python
+Copy
+bin\Debug\net6.0\MyApp.exe
+```
+Để chạy file .exe bằng terminal:
+
+- 1. Mở Command Prompt hoặc PowerShell (trên Windows).
+
+- 2. Điều hướng đến thư mục chứa file .exe. Ví dụ:
+
+```bash
+Copy
+cd bin\Debug\net6.0
+```
+Chạy file .exe:
+
+```bash
+.\MyApp.exe
+```
+(Ở PowerShell bạn cần thêm dấu .\ để chạy file thực thi trong thư mục hiện tại.)
+
+**``Lưu ý:``**
+
+* Nếu dự án của bạn không được build dưới dạng self-contained, thay vào đó bạn chỉ có file .dll, bạn cần chạy:
+
+```bash
+dotnet MyApp.dll
+```
+Trên các hệ điều hành Linux hoặc macOS, file .exe không chạy trực tiếp. Nếu bạn cần chạy ứng dụng trên Linux/macOS, bạn có thể build ứng dụng dưới dạng framework-dependent (sẽ tạo ra file .dll) và chạy bằng lệnh:
+
+```bash
+dotnet MyApp.dll
+```
+Hoặc bạn có thể build ứng dụng dưới dạng self-contained cho Linux/macOS để có file thực thi riêng (không cần dotnet), nhưng tên file sẽ không có đuôi .exe.
+
+Tóm lại, để chạy file .exe trên Windows sau khi build, bạn chỉ cần điều hướng đến thư mục output và gõ tên file (hoặc dùng .\ trên PowerShell/Command Prompt) để chạy ứng dụng.
+
+# MSTest Filtering by TestCategory
+
+Trong quá trình phát triển với MSTest, bạn có thể chỉ chạy các test method có thuộc tính `[TestCategory]` cụ thể. Việc này rất hữu ích khi bạn muốn tập trung chạy một nhóm test nào đó (ví dụ: các test tích hợp, smoke test, …) mà không cần chạy toàn bộ bộ test.
+
+## 1. Sử dụng `dotnet test`
+
+Nếu bạn dùng .NET Core/5/6/7, bạn có thể sử dụng lệnh `dotnet test` kèm với bộ lọc (filter) để chỉ chạy các test có thuộc tính `[TestCategory]` nhất định.
+
+**Ví dụ:**
+- Để chạy chỉ các test có `[TestCategory("Integration")]`:
+```bash
+dotnet test --filter "TestCategory=Integration"
+dotnet test --filter "TestCategory=Integration|TestCategory=Smoke"
+dotnet test --filter "TestCategory!=Slow"
 ```
 
-  
 
 
 

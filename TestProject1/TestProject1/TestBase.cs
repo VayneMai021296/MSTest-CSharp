@@ -38,6 +38,11 @@ namespace TestProject1
         {
             // Bắt đầu đo thời gian ngay trước khi test chạy
             _stopwatch = Stopwatch.StartNew();
+            string startMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Starting test: {TestContext.TestName}";
+            Console.WriteLine(startMessage);
+            TestContext.WriteLine(startMessage);
+            // Đảm bảo flush để in ngay lập tức ra Terminal
+            Console.Out.Flush();
         }
 
         [TestCleanup]
@@ -49,8 +54,10 @@ namespace TestProject1
             // or Trace.Listeners.Add(new ConsoleTraceListener());
             LogToFile($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}] Thời gian chạy của test {TestContext.TestName}: {_stopwatch.ElapsedMilliseconds} ms");
 
-            //Trace.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}] Thời gian chạy của test {TestContext.TestName}: {_stopwatch.ElapsedMilliseconds} ms");
-            TestContextInstance.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}] Thời gian chạy của test {TestContext.TestName}: {_stopwatch.ElapsedMilliseconds} ms");
+            string endMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Test {TestContext.TestName} ran in {_stopwatch.ElapsedMilliseconds} ms";
+            Console.WriteLine(endMessage);
+            TestContext.WriteLine(endMessage);
+            Console.Out.Flush();
         }
 
         public static TestContext TestContextInstance = null!;

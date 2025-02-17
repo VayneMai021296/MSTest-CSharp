@@ -17,6 +17,9 @@ namespace TestProject1.Validator
             _emailValidator = new EmailValidator();
         }
         [TestMethod]
+        [Owner("Mai Trung Kien")]
+            
+
         public void TestEmailValidator()
         {
             var result = _emailValidator.IsValid("maitrungkien1296@gmail.com");
