@@ -30,6 +30,10 @@ namespace program
         {
             return _cal.Add(a, b);
         }
+        public int CalculatorDivece(int a, int b)
+        {
+            return _cal.Divide(a, b);
+        }
         public void GroupByStudent()
         {
             /*

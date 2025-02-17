@@ -8,37 +8,9 @@ namespace TestProject1
     //*
     public sealed class Test1 : TestBase
     {
-        private Program _program = null!;
         /*Sự khác nhau giữa 
                                 private Calculator _cal = null!; và private Calculator? _cal = null; là gì ?
                     */
-        public static TestContext TestContextInstance = null!;
-
-        [AssemblyInitialize]
-        public static void AssemblyInit(TestContext context)
-        {
-            //!  This method is called once for the test assembly, before any tests are run.
-
-            TestContextInstance = context;
-        }
-
-        [AssemblyCleanup]
-        public static void AssemblyCleanup()
-        {
-            // This method is called once for the test assembly, after all tests are run.
-        }
-
-        [ClassInitialize]
-        public static void ClassInit(TestContext context)
-        {
-
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            // This method is called once for the test class, after all tests of the class are run.
-        }
 
         [TestInitialize]
         /* This method is called before each test method. 
@@ -58,7 +30,7 @@ namespace TestProject1
         }
 
         [TestMethod]
-        /* Sau khi khởi tạo [TestInitialize], chúng ta sẽ tạo những Test case bằng cách đánh dấu bằng Attribute [TestMethod]
+        /* Sau khi khởi tạo [TestInitialize], chúng ta sẽ tạo những Test case bằng cách đánh dấu bằng phương thức Attribute [TestMethod]
                             Chúng ta có thể thêm Attribute [Owner], [WorkItem] để biết được ai là người tạo test case này, và test case này thuộc WorkItem bao nhiêu
                             Việc tạo [WorkItem] sẽ thuận lợi cho việc chúng ta backtrade sau này 
 
@@ -76,17 +48,60 @@ namespace TestProject1
         }
 
         [TestMethod]
+        [Timeout(240)] /* Setup thời gian tối đa cho testcase này là 1000ms, Nếu quá 1000ms thì test case sẽ FAILED */
         [Owner("MAI TRUNG KIEN Group by Student basedon Id")]
         [Priority(2)]
         [WorkItem(113)]
-        [Timeout(240)] /* Setup thời gian tối đa cho testcase này là 1000ms, Nếu quá 1000ms thì test case sẽ FAILED */
         public void Test_TimeOut()
         {
             // This test will always fail because the time taken to execute is greater than the timeout value.
             _program.GroupByStudent();
         }
+
+
+        [TestMethod]
+        [DataTestMethod]
+        /* Đánh dấu một phương thức test là data-driven test (kiểm thử với nhiều bộ dữ liệu khác nhau).
+                        * Cho phép chạy lại cùng một test method với nhiều giá trị đầu vào. */
+        [DataRow(2, 3, 5)]
+        [DataRow(4, 5, 9)]
+        public void Add_DataDrivenTest(int a, int b, int expected)
+        {
+            int result = _program.CalculatorAdd(a, b);
+            Assert.AreEqual(expected, result);
+        }
+
+        public static IEnumerable<object[]> GetTestData()
+        {
+            yield return new object[] { 2, 3, 5 };
+            yield return new object[] { 4, 5, 9 };
+        }
+
+        [TestMethod]
+        [DataTestMethod]
+        /*  Tương tự [DataRow] nhưng cho phép cung cấp dữ liệu từ một nguồn động (ví dụ: từ một phương thức hoặc thuộc tính trả về IEnumerable<object[]>). 
+                    *  Giúp tạo dữ liệu kiểm thử linh hoạt và mở rộng.*/
+        [DynamicData(nameof(GetTestData), DynamicDataSourceType.Method)]
+        public void Add_DynamicDataTest(int a, int b, int expected)
+        {
+            int result = _program.CalculatorAdd(a, b);
+            Assert.AreEqual(expected, result);
+        }
+
+        //[TestMethod]
+        //[ExpectedException(typeof(ArgumentException))]
+        ///* Chỉ định rằng một test method dự kiến sẽ ném ra một loại exception nhất định. 
+        //                * Nếu exception được ném ra như dự kiến  =>  test được coi là thành công; 
+        //                * ngược lại => test sẽ thất bại.*/
+        //public void Divide_ByZero_ThrowsArgumentException()
+        //{
+        //    // Giả sử hàm Divide ném ArgumentException khi chia cho 0
+        //    _program.CalculatorDivece(10, 0);
+        //}
+
+
         [TestCleanup]
-        /* Trong mỗi một class được đánh dấu là [TestClass] Attribute [TestCleanup] chỉ được khai báo 1 lần và trong [TestClass] có bao nhiêu
+        /* Trong mỗi một class được đánh dấu là [TestClass] Attribute [TestCleanup] chỉ được khai báo 1 lần duy nhât, và trong [TestClass] có bao nhiêu
                     Attribute [TestMethod] thì [TestCleanup] sẽ được gọi bấy nhiêu lần*/
         public void TestCleanup()
         {

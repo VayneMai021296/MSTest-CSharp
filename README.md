@@ -47,10 +47,12 @@ Here are the main attributes used in MSTest with explanations and examples:
 - **Usage**: Used to set up the test environment
     - **Example**:
     ```csharp
+    private string _testName;
     [TestInitialize]
     public void TestInitialize()
     {
-        // Test initialization code here
+        // Test initialization code here 
+        _testName = "This is initialization";
     }           
     ```
     - **Explanation**:
@@ -446,7 +448,35 @@ public class TestBase : TestBase
     }
 }
 ```
-# How to build solution Test and Project
+
+# Chú ý
+- Khi chạy test trên Linux hoặc macOS, cần chạy lệnh sau để tạo file log:
+```bash
+dotnet test --logger "console;verbosity=detailed"
+```
+- Khi chạy test trên Windows, cần chạy lệnh sau để tạo file log:
+```bash
+dotnet test --logger "console;verbosity=detailed"
+```
+- Những method nào được đánh dấu Attribute là `[TestMethod]` thì sau khi chạy sau mới gọi được method được đánh dấu Attribute là `[TestCleanup]`
+- Method được đánh giấu là  `[AssemblyInitialize]` hoặc `[ClassInitialize]` thì chỉ chạy 1 lần duy nhất trước khi chạy các test method, 
+Những method này có kiểu là static và có tham số là TestContext, chúng ta sẽ sử dụng biến này để lấy tên test method, tên test class, tên assembly, tên project, tên solution, tên máy tính, tên người dùng, thời gian chạy test, và các thông tin khác.
+```css 
+Thông tin của TestContext
+|
+├── TestName: Tên của test method
+├── TestContext.TestName: Tên của test method
+├── TestContext.TestClass: Tên của test class
+├── TestContext.TestAssembly: Tên của test assembly
+├── TestContext.TestProject: Tên của test project
+├── TestContext.TestSolution: Tên của test solution
+├── TestContext.TestResultsDirectory: Đường dẫn thư mục kết quả test
+├── TestContext.TestRunDirectory: Đường dẫn thư mục kết quả test run
+├── TestContext.TestRunResultsDirectory: Đường dẫn thư mục kết quả test run results
+...
+```
+
+# How to build solution Test and Project (Linux or macOS)
 
 * **Step1: Open Terminal or Command Prompt and run the following command to create a solution:**
 
