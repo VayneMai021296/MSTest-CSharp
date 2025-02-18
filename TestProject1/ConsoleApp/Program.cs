@@ -8,7 +8,16 @@ namespace program
     {
         public static void Main()
         {
-           
+            Console.Write("Please Enter the name of Program (1|2|3): ");
+            string? name = Console.ReadLine();
+            if (name != null)
+            {
+                Console.WriteLine($"The Named of Program is: {name}");
+            }
+            else
+            {
+                Console.WriteLine("No name entered.");
+            }
         }
         private Calculator _cal = null!;
         private List<Student> students = new List<Student>();
@@ -25,6 +34,7 @@ namespace program
                 var student = new Student() { Id = random.Next(1, 1000), Name = ((char)random.Next('A', 'Z')).ToString() };
                 students.Add(student);
             }
+           
         }
         public int CalculatorAdd(int a, int b)
         {
